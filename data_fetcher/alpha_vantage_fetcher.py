@@ -1,6 +1,6 @@
 import requests
 from data_fetcher.base_data_fetcher import BaseDataFetcher
-
+from datetime import datetime, timedelta
 
 class AlphaVantageFetcher(BaseDataFetcher):
     BASE_URL = "https://www.alphavantage.co/query"
@@ -29,3 +29,23 @@ class AlphaVantageFetcher(BaseDataFetcher):
         response = requests.get(self.BASE_URL, params=params)
         response.raise_for_status()
         return response.json()
+
+    def fetch_historical_prices(self, symbol: str, days: int):
+        params = {
+            'function': 'TIME_SERIES_DAILY',
+            'symbol': symbol,
+            'apikey': self.api_key,
+            'outputsize': 'compact'  # 'compact' for the most recent 100 days
+        }
+        response = requests.get(self.BASE_URL, params=params)
+        response.raise_for_status()
+        data = response.json()
+        time_series = data.get("Time Series (Daily)", {})
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days)
+        result = {
+            date: float(values["4. close"])
+            for date, values in time_series.items()
+            if start_date.strftime("%Y-%m-%d") <= date <= end_date.strftime("%Y-%m-%d")
+        }
+        return result

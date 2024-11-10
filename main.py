@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
 from data_fetcher.alpha_vantage_fetcher import AlphaVantageFetcher
+from utils.db_storage import save_historical_prices
+
 
 
 def main():
@@ -11,10 +13,10 @@ def main():
         raise ValueError("API key not found. Please set it in the .env file.")
 
     fetcher = AlphaVantageFetcher(api_key=api_key)
-    symbols = ['TSLA', 'PLTR', 'MSFT', 'LMND']
-    for symbol in symbols:
-        price = fetcher.fetch_last_price(symbol)
-        print(f"Latest available price for {symbol}: ${price}")
+    symbol = "TSLA"
+    days = 360
+    data = fetcher.fetch_historical_prices(symbol, days)
+    save_historical_prices(data, symbol)
 
 
 if __name__ == "__main__":
