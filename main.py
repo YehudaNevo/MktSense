@@ -1,22 +1,22 @@
 import os
 from dotenv import load_dotenv
-from data_fetcher.alpha_vantage_fetcher import AlphaVantageFetcher
-from utils.db_storage import save_historical_prices
-
+from utils.db_storage import fetch_historical_prices_from_db
+from scripts.visualData.base_visualizer import BaseVisualizer
 
 
 def main():
     load_dotenv()
-    api_key = os.getenv("ALPHA_VANTAGE_API_KEY")
+    visualizer = BaseVisualizer()
 
-    if not api_key:
-        raise ValueError("API key not found. Please set it in the .env file.")
+    symbols = ["TSLA", "PLTR", "MSFT", "LMND"]
 
-    fetcher = AlphaVantageFetcher(api_key=api_key)
-    symbol = "TSLA"
-    days = 360
-    data = fetcher.fetch_historical_prices(symbol, days)
-    save_historical_prices(data, symbol)
+    for symbol in symbols:
+        data = fetch_historical_prices_from_db(symbol)
+        if data:
+            print(f"Visualizing data for {symbol}")
+            visualizer.plot_all(data, symbol)
+        else:
+            print(f"No data available for {symbol}")
 
 
 if __name__ == "__main__":
